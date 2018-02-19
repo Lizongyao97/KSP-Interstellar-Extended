@@ -1,8 +1,9 @@
 ﻿
 namespace FNPlugin 
 {
-    class GameConstants 
+    class GameConstants
     {
+		public const double averageKerbinSolarFlux = 1409.285;  // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
         public const double avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
         public const double basePowerConsumption = 5;
         public const double baseAMFPowerConsumption = 5000;
@@ -18,6 +19,7 @@ namespace FNPlugin
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
         public const double EarthAtmospherePressureAtSeaLevel = 101.325;
+        public const double EarthRadius = 6371000;
         public const double aluminiumElectrolysisMassRatio = 1.5;
         public const double deuterium_abudance = 0.00015625;
         public const double deuterium_timescale = 0.0016667;

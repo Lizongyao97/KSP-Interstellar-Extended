@@ -78,6 +78,45 @@ namespace FNPlugin
             return power_taken_per_second;
         }
 
+        public double consumeFNResourcePerSecondBuffered(double requestedPowerPerSecond, String resourcename, double limitBarRatio = 0.1, ResourceManager manager = null)
+        {
+            if (double.IsNaN(requestedPowerPerSecond) || String.IsNullOrEmpty(resourcename))
+            {
+                Debug.Log("[KSPI] - consumeFNResourcePerSecond illegal values.");
+                return 0;
+            }
+
+            requestedPowerPerSecond = Math.Max(requestedPowerPerSecond, 0);
+
+            if (manager == null)
+                manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            if (!fnresource_supplied.ContainsKey(resourcename))
+                fnresource_supplied.Add(resourcename, 0);
+
+            var avialablePower = fnresource_supplied[resourcename];
+            var power_taken_per_second = Math.Max(Math.Min(requestedPowerPerSecond, avialablePower), 0);
+            fnresource_supplied[resourcename] -= power_taken_per_second;
+
+            // supplement with buffer power if needed and available
+            var powerShortage = requestedPowerPerSecond - avialablePower;
+            if (powerShortage > 0)
+            {
+                var currentCapacity = manager.getTotalResourceCapacity();
+                var currentAmount = currentCapacity * manager.ResourceBarRatioBegin;
+                var fixedPowerShortage = powerShortage * timeWarpFixedDeltaTime;
+
+                if (currentAmount - fixedPowerShortage > currentCapacity * limitBarRatio)
+                    power_taken_per_second += part.RequestResource(resourcename, fixedPowerShortage) / timeWarpFixedDeltaTime;
+            }
+
+            manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
+
+            return power_taken_per_second;
+        }
+
         public double supplyFNResourceFixed(double supply, String resourcename)
         {
             if (double.IsNaN(supply) || String.IsNullOrEmpty(resourcename)) {
@@ -195,7 +234,7 @@ namespace FNPlugin
 
             var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
-            return result.currentProvided;
+            return result.currentSupply;
         }
 
         public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
